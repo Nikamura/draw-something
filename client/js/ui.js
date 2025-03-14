@@ -295,35 +295,41 @@ class UI {
   }
 
   /**
-   * Display word selection options
-   * @param {Array} words - List of words to choose from
+   * Show word selection UI
+   * @param {Array} words - Array of word objects with word and difficulty properties
    * @param {Function} onSelect - Callback when a word is selected
    */
   showWordSelection(words, onSelect) {
     this.wordSelection.classList.remove('hidden');
     
+    // Get all word option buttons
+    const wordOptionButtons = document.querySelectorAll('.word-option');
+    
     // Set word options
-    this.wordOptions.forEach((option, index) => {
-      const difficulty = option.getAttribute('data-difficulty');
-      option.textContent = words[index];
-      
-      // Clear previous event listeners
-      const newOption = option.cloneNode(true);
-      option.parentNode.replaceChild(newOption, option);
-      
-      // Add new event listener
-      newOption.addEventListener('click', () => {
-        onSelect(words[index], difficulty);
-        this.wordSelection.classList.add('hidden');
-      });
+    wordOptionButtons.forEach((option, index) => {
+      if (index < words.length) {
+        const wordObj = words[index];
+        option.textContent = wordObj.word;
+        option.setAttribute('data-difficulty', wordObj.difficulty);
+        
+        // Clear previous event listeners
+        const newOption = option.cloneNode(true);
+        option.parentNode.replaceChild(newOption, option);
+        
+        // Add new event listener
+        newOption.addEventListener('click', () => {
+          onSelect(wordObj.word, wordObj.difficulty);
+          this.wordSelection.classList.add('hidden');
+        });
+      }
     });
     
     // Start word selection timer
     this.startTimer(CONFIG.WORD_SELECTION_TIME, () => {
       // Randomly select a word if time runs out
       const randomIndex = Math.floor(Math.random() * words.length);
-      const difficulty = this.wordOptions[randomIndex].getAttribute('data-difficulty');
-      onSelect(words[randomIndex], difficulty);
+      const wordObj = words[randomIndex];
+      onSelect(wordObj.word, wordObj.difficulty);
       this.wordSelection.classList.add('hidden');
     });
   }

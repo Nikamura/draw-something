@@ -88,7 +88,7 @@ function getRandomWordFromList(wordList) {
 
 /**
  * Get random words for each difficulty level
- * @returns {Array} Array of words [easy, medium, hard]
+ * @returns {Array} Array of words [3 easy, 3 medium, 3 hard]
  */
 function getRandomWords() {
   // Make sure word lists are loaded
@@ -96,12 +96,32 @@ function getRandomWords() {
     loadWordList();
   }
   
-  // Get random words
-  const easy = getRandomWordFromList(easyWords);
-  const medium = getRandomWordFromList(mediumWords);
-  const hard = getRandomWordFromList(hardWords);
+  // Get 3 random words from each difficulty
+  const easyOptions = [];
+  const mediumOptions = [];
+  const hardOptions = [];
   
-  return [easy, medium, hard];
+  // Get 3 easy words
+  for (let i = 0; i < 3; i++) {
+    easyOptions.push(getRandomWordFromList(easyWords));
+  }
+  
+  // Get 3 medium words
+  for (let i = 0; i < 3; i++) {
+    mediumOptions.push(getRandomWordFromList(mediumWords));
+  }
+  
+  // Get 3 hard words
+  for (let i = 0; i < 3; i++) {
+    hardOptions.push(getRandomWordFromList(hardWords));
+  }
+  
+  // Return all 9 words with their difficulty levels
+  return [
+    ...easyOptions.map(word => ({ word, difficulty: 'easy' })),
+    ...mediumOptions.map(word => ({ word, difficulty: 'medium' })),
+    ...hardOptions.map(word => ({ word, difficulty: 'hard' }))
+  ];
 }
 
 /**

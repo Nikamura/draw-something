@@ -427,6 +427,13 @@ class GameManager {
     this.hasGuessedCorrectly = false;
     this.gameState = 'turn-start';
     
+    // Update round information if provided
+    if (data.currentRound && data.totalRounds) {
+      this.currentRound = data.currentRound;
+      this.totalRounds = data.totalRounds;
+      ui.updateRoundInfo(this.currentRound, this.totalRounds);
+    }
+    
     console.log(`Current drawer: ${this.currentDrawer}, This player: ${this.playerId}, Is drawing: ${this.isDrawing}`);
     
     // Clear canvas

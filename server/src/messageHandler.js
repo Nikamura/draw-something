@@ -624,7 +624,9 @@ function startNextTurn(wss, roomId) {
       payload: {
         drawerId: nextDrawer.id,
         drawerName: nextDrawer.name,
-        players: room.players
+        players: room.players,
+        currentRound: room.gameState.currentRound,
+        totalRounds: room.settings.rounds
       }
     });
     
@@ -647,12 +649,12 @@ function startNextTurn(wss, roomId) {
         // Auto-select a random word if the drawer doesn't select one
         if (!room.gameState.word) {
           const randomIndex = Math.floor(Math.random() * wordOptions.length);
-          const randomDifficulty = ['easy', 'medium', 'hard'][randomIndex];
+          const randomWord = wordOptions[randomIndex];
           
           handleWordSelected(drawerClient, {
             roomId,
-            word: wordOptions[randomIndex],
-            difficulty: randomDifficulty
+            word: randomWord.word,
+            difficulty: randomWord.difficulty
           }, wss);
         }
       }, 15000); // 15 seconds for word selection
