@@ -14,6 +14,21 @@ const {
   resetGame
 } = require('./roomManager');
 
+// Fallback sendError function in case the import fails
+const localSendError = (ws, message) => {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({
+      type: 'error',
+      payload: {
+        message
+      }
+    }));
+  }
+};
+
+// Use the imported sendError if available, otherwise use the local one
+const errorHandler = sendError || localSendError;
+
 // Message types
 const MESSAGE_TYPES = {
   // Connection messages
@@ -99,7 +114,7 @@ function handleMessage(ws, message, wss) {
       break;
       
     default:
-      sendError(ws, `Unknown message type: ${type}`);
+      errorHandler(ws, `Unknown message type: ${type}`);
   }
 }
 
@@ -113,7 +128,7 @@ function handleCreateRoom(ws, payload, wss) {
   const { playerName } = payload;
   
   if (!playerName) {
-    return sendError(ws, 'Player name is required');
+    return errorHandler(ws, 'Player name is required');
   }
   
   const { roomId, playerId } = createRoom(ws, playerName);
@@ -140,15 +155,19 @@ function handleCreateRoom(ws, payload, wss) {
 function handleJoinRoom(ws, payload, wss) {
   const { playerName, roomId } = payload;
   
+  console.log(`Handling join room request: ${playerName} trying to join ${roomId}`);
+  
   if (!playerName || !roomId) {
-    return sendError(ws, 'Player name and room ID are required');
+    console.log('Missing playerName or roomId in join request');
+    return errorHandler(ws, 'Player name and room ID are required');
   }
   
   try {
     const result = joinRoom(ws, roomId, playerName);
     
     if (!result) {
-      return sendError(ws, 'Failed to join room');
+      console.log('Join room failed: No result returned');
+      return errorHandler(ws, 'Failed to join room');
     }
     
     const { playerId, room } = result;
@@ -156,18 +175,25 @@ function handleJoinRoom(ws, payload, wss) {
     // Store player ID in WebSocket object for reference
     ws.playerId = playerId;
     
+    // Create the response payload
+    const responsePayload = {
+      roomId,
+      playerId,
+      isCreator: room.creatorId === playerId,
+      creatorId: room.creatorId,
+      players: room.players,
+      settings: room.settings
+    };
+    
+    console.log(`Sending ROOM_JOINED message to client with payload:`, responsePayload);
+    
     // Send room joined message to client
     ws.send(JSON.stringify({
       type: MESSAGE_TYPES.ROOM_JOINED,
-      payload: {
-        roomId,
-        playerId,
-        isCreator: room.creatorId === playerId,
-        creatorId: room.creatorId,
-        players: room.players,
-        settings: room.settings
-      }
+      payload: responsePayload
     }));
+    
+    console.log(`Notifying other players in room ${roomId} about new player ${playerName}`);
     
     // Notify other players in the room
     broadcastToRoom(wss, roomId, {
@@ -181,7 +207,8 @@ function handleJoinRoom(ws, payload, wss) {
       }
     }, [ws.id]);
   } catch (error) {
-    sendError(ws, error.message);
+    console.log(`Error joining room: ${error.message}`);
+    errorHandler(ws, error.message);
   }
 }
 
@@ -195,19 +222,19 @@ function handleGameStarted(ws, payload, wss) {
   const { roomId } = payload;
   
   if (!roomId) {
-    return sendError(ws, 'Room ID is required');
+    return errorHandler(ws, 'Room ID is required');
   }
   
   try {
     const room = getRoomById(roomId);
     
     if (!room) {
-      return sendError(ws, 'Room not found');
+      return errorHandler(ws, 'Room not found');
     }
     
     // Only the room creator can start the game
     if (room.creatorId !== ws.playerId) {
-      return sendError(ws, 'Only the room creator can start the game');
+      return errorHandler(ws, 'Only the room creator can start the game');
     }
     
     // Start the game
@@ -228,7 +255,7 @@ function handleGameStarted(ws, payload, wss) {
       startNextTurn(wss, roomId);
     }, 2000);
   } catch (error) {
-    sendError(ws, error.message);
+    errorHandler(ws, error.message);
   }
 }
 
@@ -242,19 +269,19 @@ function handleWordSelected(ws, payload, wss) {
   const { roomId, word, difficulty } = payload;
   
   if (!roomId || !word) {
-    return sendError(ws, 'Room ID and word are required');
+    return errorHandler(ws, 'Room ID and word are required');
   }
   
   try {
     const room = getRoomById(roomId);
     
     if (!room) {
-      return sendError(ws, 'Room not found');
+      return errorHandler(ws, 'Room not found');
     }
     
     // Only the current drawer can select a word
     if (room.gameState.currentDrawer !== ws.playerId) {
-      return sendError(ws, 'Only the current drawer can select a word');
+      return errorHandler(ws, 'Only the current drawer can select a word');
     }
     
     // Handle word selection
@@ -295,7 +322,7 @@ function handleWordSelected(ws, payload, wss) {
       }
     }, 1000);
   } catch (error) {
-    sendError(ws, error.message);
+    errorHandler(ws, error.message);
   }
 }
 
@@ -309,19 +336,19 @@ function handleDrawDataMessage(ws, payload, wss) {
   const { roomId, drawData } = payload;
   
   if (!roomId || !drawData) {
-    return sendError(ws, 'Room ID and draw data are required');
+    return errorHandler(ws, 'Room ID and draw data are required');
   }
   
   try {
     const room = getRoomById(roomId);
     
     if (!room) {
-      return sendError(ws, 'Room not found');
+      return errorHandler(ws, 'Room not found');
     }
     
     // Only the current drawer can send draw data
     if (room.gameState.currentDrawer !== ws.playerId) {
-      return sendError(ws, 'Only the current drawer can draw');
+      return errorHandler(ws, 'Only the current drawer can draw');
     }
     
     // Handle draw data
@@ -335,7 +362,7 @@ function handleDrawDataMessage(ws, payload, wss) {
       }
     }, [ws.id]);
   } catch (error) {
-    sendError(ws, error.message);
+    errorHandler(ws, error.message);
   }
 }
 
@@ -349,19 +376,19 @@ function handleClearCanvasMessage(ws, payload, wss) {
   const { roomId } = payload;
   
   if (!roomId) {
-    return sendError(ws, 'Room ID is required');
+    return errorHandler(ws, 'Room ID is required');
   }
   
   try {
     const room = getRoomById(roomId);
     
     if (!room) {
-      return sendError(ws, 'Room not found');
+      return errorHandler(ws, 'Room not found');
     }
     
     // Only the current drawer can clear the canvas
     if (room.gameState.currentDrawer !== ws.playerId) {
-      return sendError(ws, 'Only the current drawer can clear the canvas');
+      return errorHandler(ws, 'Only the current drawer can clear the canvas');
     }
     
     // Handle clear canvas
@@ -372,7 +399,7 @@ function handleClearCanvasMessage(ws, payload, wss) {
       type: MESSAGE_TYPES.CLEAR_CANVAS
     }, [ws.id]);
   } catch (error) {
-    sendError(ws, error.message);
+    errorHandler(ws, error.message);
   }
 }
 
@@ -386,26 +413,26 @@ function handleChatMessageReceived(ws, payload, wss) {
   const { roomId, message } = payload;
   
   if (!roomId || !message) {
-    return sendError(ws, 'Room ID and message are required');
+    return errorHandler(ws, 'Room ID and message are required');
   }
   
   try {
     const room = getRoomById(roomId);
     
     if (!room) {
-      return sendError(ws, 'Room not found');
+      return errorHandler(ws, 'Room not found');
     }
     
     // Get player from room
     const player = room.players.find(p => p.id === ws.playerId);
     
     if (!player) {
-      return sendError(ws, 'Player not found in room');
+      return errorHandler(ws, 'Player not found in room');
     }
     
     // Check if player is the current drawer
     if (room.gameState.currentDrawer === ws.playerId) {
-      return sendError(ws, 'The drawer cannot send chat messages during their turn');
+      return errorHandler(ws, 'The drawer cannot send chat messages during their turn');
     }
     
     // Check if player has already guessed correctly
@@ -464,7 +491,7 @@ function handleChatMessageReceived(ws, payload, wss) {
       });
     }
   } catch (error) {
-    sendError(ws, error.message);
+    errorHandler(ws, error.message);
   }
 }
 
@@ -478,19 +505,19 @@ function handleUpdateSettings(ws, payload, wss) {
   const { roomId, settings } = payload;
   
   if (!roomId || !settings) {
-    return sendError(ws, 'Room ID and settings are required');
+    return errorHandler(ws, 'Room ID and settings are required');
   }
   
   try {
     const room = getRoomById(roomId);
     
     if (!room) {
-      return sendError(ws, 'Room not found');
+      return errorHandler(ws, 'Room not found');
     }
     
     // Only the room creator can update settings
     if (room.creatorId !== ws.playerId) {
-      return sendError(ws, 'Only the room creator can update settings');
+      return errorHandler(ws, 'Only the room creator can update settings');
     }
     
     // Update room settings
@@ -505,7 +532,7 @@ function handleUpdateSettings(ws, payload, wss) {
       }
     });
   } catch (error) {
-    sendError(ws, error.message);
+    errorHandler(ws, error.message);
   }
 }
 
@@ -519,19 +546,19 @@ function handleResetGame(ws, payload, wss) {
   const { roomId } = payload;
   
   if (!roomId) {
-    return sendError(ws, 'Room ID is required');
+    return errorHandler(ws, 'Room ID is required');
   }
   
   try {
     const room = getRoomById(roomId);
     
     if (!room) {
-      return sendError(ws, 'Room not found');
+      return errorHandler(ws, 'Room not found');
     }
     
     // Only the room creator can reset the game
     if (room.creatorId !== ws.playerId) {
-      return sendError(ws, 'Only the room creator can reset the game');
+      return errorHandler(ws, 'Only the room creator can reset the game');
     }
     
     // Reset the game
@@ -545,7 +572,7 @@ function handleResetGame(ws, payload, wss) {
       }
     });
   } catch (error) {
-    sendError(ws, error.message);
+    errorHandler(ws, error.message);
   }
 }
 

@@ -17,10 +17,14 @@ function setupWebSocketServer(server) {
     // Assign a unique ID to the connection
     ws.id = Date.now().toString();
     
+    // Initialize player ID (will be set when player creates/joins a room)
+    ws.playerId = null;
+    
     // Message event
     ws.on('message', (message) => {
       try {
         const parsedMessage = JSON.parse(message);
+        console.log('Received message from client:', parsedMessage.type);
         handleMessage(ws, parsedMessage, wss);
       } catch (error) {
         console.error('Error parsing message:', error);
@@ -32,7 +36,10 @@ function setupWebSocketServer(server) {
     ws.on('close', () => {
       console.log('Client disconnected');
       // Clean up when a client disconnects
-      removePlayerFromAllRooms(ws.id);
+      if (ws.id) {
+        console.log(`Removing player with connection ID ${ws.id} from all rooms`);
+        removePlayerFromAllRooms(ws.id);
+      }
     });
     
     // Error event

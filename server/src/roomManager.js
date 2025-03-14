@@ -67,25 +67,31 @@ function createRoom(ws, playerName) {
  * @returns {Object} Room and player data
  */
 function joinRoom(ws, roomId, playerName) {
+  console.log(`Attempting to join room ${roomId} with player ${playerName}`);
+  
   // Check if room exists
   const room = rooms.get(roomId);
   
   if (!room) {
+    console.log(`Room ${roomId} not found`);
     throw new Error('Room not found');
   }
   
   // Check if game is already in progress
   if (room.gameState.isActive) {
+    console.log(`Game in room ${roomId} is already in progress`);
     throw new Error('Game already in progress');
   }
   
   // Check if room is full
   if (room.players.length >= 8) {
+    console.log(`Room ${roomId} is full`);
     throw new Error('Room is full');
   }
   
   // Check if player name is already taken in this room
   if (room.players.some(p => p.name === playerName)) {
+    console.log(`Player name ${playerName} already taken in room ${roomId}`);
     throw new Error('Player name already taken in this room');
   }
   
@@ -105,7 +111,8 @@ function joinRoom(ws, roomId, playerName) {
   // Add player to room
   room.players.push(player);
   
-  console.log(`Player ${playerName} joined room ${roomId}`);
+  console.log(`Player ${playerName} (${playerId}) joined room ${roomId}`);
+  console.log(`Room ${roomId} now has ${room.players.length} players`);
   
   return { playerId, room };
 }

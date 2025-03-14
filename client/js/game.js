@@ -25,18 +25,24 @@ class GameManager {
    * Initialize the game
    */
   init() {
+    console.log('GameManager.init() called');
+    
+    // Initialize UI first
+    ui.init();
+    console.log('UI initialized');
+    
     // Initialize canvas
     const canvasElement = document.getElementById('drawing-canvas');
     this.canvas = new Canvas(canvasElement, this._onDrawEvent);
-    
-    // Initialize UI
-    ui.init();
+    console.log('Canvas initialized');
     
     // Set up event listeners
     this._setupEventListeners();
+    console.log('Event listeners set up');
     
     // Connect to server
     this._connectToServer();
+    console.log('Connecting to server...');
   }
 
   /**
@@ -137,9 +143,25 @@ class GameManager {
     
     this.playerName = playerName;
     
-    socketManager.send(CONFIG.MESSAGE_TYPES.CREATE_ROOM, {
-      playerName
-    });
+    // Make sure we're connected before sending
+    if (!socketManager.connected) {
+      ui.showNotification('Connecting to server...');
+      socketManager.connect()
+        .then(() => {
+          console.log('Connected, now creating room');
+          socketManager.send(CONFIG.MESSAGE_TYPES.CREATE_ROOM, {
+            playerName
+          });
+        })
+        .catch(error => {
+          console.error('Failed to connect to server:', error);
+          ui.showNotification('Failed to connect to server. Please try again later.', 5000);
+        });
+    } else {
+      socketManager.send(CONFIG.MESSAGE_TYPES.CREATE_ROOM, {
+        playerName
+      });
+    }
   }
 
   /**
@@ -162,10 +184,27 @@ class GameManager {
     
     this.playerName = playerName;
     
-    socketManager.send(CONFIG.MESSAGE_TYPES.JOIN_ROOM, {
-      playerName,
-      roomId: roomCode
-    });
+    // Make sure we're connected before sending
+    if (!socketManager.connected) {
+      ui.showNotification('Connecting to server...');
+      socketManager.connect()
+        .then(() => {
+          console.log('Connected, now joining room');
+          socketManager.send(CONFIG.MESSAGE_TYPES.JOIN_ROOM, {
+            playerName,
+            roomId: roomCode
+          });
+        })
+        .catch(error => {
+          console.error('Failed to connect to server:', error);
+          ui.showNotification('Failed to connect to server. Please try again later.', 5000);
+        });
+    } else {
+      socketManager.send(CONFIG.MESSAGE_TYPES.JOIN_ROOM, {
+        playerName,
+        roomId: roomCode
+      });
+    }
   }
 
   /**
@@ -201,6 +240,8 @@ class GameManager {
    * @param {Object} data - Room data
    */
   _handleRoomJoined(data) {
+    console.log('_handleRoomJoined called with data:', data);
+    
     this.roomId = data.roomId;
     this.playerId = data.playerId;
     this.isRoomCreator = data.isCreator;

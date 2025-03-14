@@ -11,6 +11,14 @@ class UI {
       results: document.getElementById('results-screen')
     };
     
+    // Log screen elements for debugging
+    console.log('UI constructor - screen elements:', {
+      home: this.screens.home,
+      lobby: this.screens.lobby,
+      game: this.screens.game,
+      results: this.screens.results
+    });
+    
     // Home screen elements
     this.playerNameInput = document.getElementById('player-name');
     this.createRoomBtn = document.getElementById('create-room-btn');
@@ -60,6 +68,15 @@ class UI {
    * Initialize UI event listeners
    */
   init() {
+    // Test button for debugging
+    const testLobbyBtn = document.getElementById('test-lobby-btn');
+    if (testLobbyBtn) {
+      testLobbyBtn.addEventListener('click', () => {
+        console.log('Test button clicked, showing lobby screen');
+        this.showScreen('lobby');
+      });
+    }
+    
     // Copy room code button
     this.copyCodeBtn.addEventListener('click', () => {
       const roomCode = this.shareCodeDisplay.textContent;
@@ -98,12 +115,19 @@ class UI {
    * @param {string} screenName - Name of the screen to show
    */
   showScreen(screenName) {
+    console.log(`UI.showScreen called with screenName: ${screenName}`);
+    console.trace('showScreen call stack');
+    
     Object.keys(this.screens).forEach(key => {
       this.screens[key].classList.remove('active');
     });
     
+    console.log('screens:', this.screens);
     if (this.screens[screenName]) {
       this.screens[screenName].classList.add('active');
+      console.log(`Screen ${screenName} is now active`);
+    } else {
+      console.error(`Screen ${screenName} not found in this.screens:`, this.screens);
     }
   }
 
