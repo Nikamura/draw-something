@@ -474,6 +474,31 @@ input:focus, select:focus {
   margin-bottom: 15px;
 }
 
+.drawing-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.btn-tool {
+  flex: 1;
+  padding: 8px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.btn-tool i {
+  font-size: 1rem;
+}
+
+.btn-tool.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
 .brush-option {
   flex: 1;
   padding: 5px;

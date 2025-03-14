@@ -46,6 +46,7 @@ class UI {
     this.colorOptions = document.querySelectorAll('.color-option');
     this.brushOptions = document.querySelectorAll('.brush-option');
     this.clearCanvasBtn = document.getElementById('clear-canvas');
+    this.fillToolBtn = document.getElementById('fill-tool');
     this.scoreboardList = document.getElementById('scoreboard-list');
     this.chatMessages = document.getElementById('chat-messages');
     this.chatInput = document.getElementById('chat-input');
@@ -125,6 +126,25 @@ class UI {
           gameManager.canvas.setBrushSize(size);
         }
       });
+    });
+    
+    // Fill tool
+    this.fillToolBtn.addEventListener('click', () => {
+      const isActive = this.fillToolBtn.classList.contains('active');
+      
+      if (isActive) {
+        // Switch back to brush tool
+        this.fillToolBtn.classList.remove('active');
+        if (gameManager && gameManager.canvas) {
+          gameManager.canvas.setActiveTool('brush');
+        }
+      } else {
+        // Switch to fill tool
+        this.fillToolBtn.classList.add('active');
+        if (gameManager && gameManager.canvas) {
+          gameManager.canvas.setActiveTool('fill');
+        }
+      }
     });
     
     // Set up chat scroll event listener
@@ -501,6 +521,8 @@ class UI {
     });
     
     this.clearCanvasBtn.disabled = !enabled;
+    this.fillToolBtn.disabled = !enabled;
+    this.fillToolBtn.style.opacity = enabled ? '1' : '0.5';
   }
 
   /**
