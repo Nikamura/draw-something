@@ -68,6 +68,20 @@ class UI {
    * Initialize UI event listeners
    */
   init() {
+    console.log('UI.init() called');
+    
+    // Ensure only home screen is active at startup
+    const allScreens = document.querySelectorAll('.screen');
+    allScreens.forEach(screen => {
+      screen.classList.remove('active');
+    });
+    
+    // Make only home screen active
+    const homeScreen = document.getElementById('home-screen');
+    if (homeScreen) {
+      homeScreen.classList.add('active');
+    }
+    
     // Test button for debugging
     const testLobbyBtn = document.getElementById('test-lobby-btn');
     if (testLobbyBtn) {
@@ -116,19 +130,36 @@ class UI {
    */
   showScreen(screenName) {
     console.log(`UI.showScreen called with screenName: ${screenName}`);
-    console.trace('showScreen call stack');
     
-    Object.keys(this.screens).forEach(key => {
-      this.screens[key].classList.remove('active');
+    // First, hide ALL screens using direct DOM selection
+    // This ensures we catch any screens that might not be in our this.screens object
+    const allScreenElements = document.querySelectorAll('.screen');
+    allScreenElements.forEach(screen => {
+      screen.classList.remove('active');
     });
     
-    console.log('screens:', this.screens);
+    // Then, show the requested screen
     if (this.screens[screenName]) {
       this.screens[screenName].classList.add('active');
       console.log(`Screen ${screenName} is now active`);
     } else {
       console.error(`Screen ${screenName} not found in this.screens:`, this.screens);
     }
+    
+    // Verify only the requested screen is active
+    setTimeout(() => {
+      const activeScreens = document.querySelectorAll('.screen.active');
+      console.log(`Number of active screens: ${activeScreens.length}`);
+      
+      if (activeScreens.length > 1) {
+        console.error('Multiple screens still active! Force fixing...');
+        activeScreens.forEach((screen, index) => {
+          if (index > 0 || screen.id !== `${screenName}-screen`) {
+            screen.classList.remove('active');
+          }
+        });
+      }
+    }, 50);
   }
 
   /**
@@ -447,6 +478,22 @@ class UI {
   updateRoundInfo(currentRound, totalRounds) {
     this.currentRoundDisplay.textContent = currentRound;
     this.totalRoundsDisplay.textContent = totalRounds;
+  }
+
+  /**
+   * Debug function to check which screens are currently active
+   * @returns {string[]} Array of active screen names
+   */
+  checkActiveScreens() {
+    const activeScreens = [];
+    Object.keys(this.screens).forEach(key => {
+      if (this.screens[key] && this.screens[key].classList.contains('active')) {
+        activeScreens.push(key);
+      }
+    });
+    
+    console.log(`Currently active screens: ${activeScreens.length ? activeScreens.join(', ') : 'none'}`);
+    return activeScreens;
   }
 }
 

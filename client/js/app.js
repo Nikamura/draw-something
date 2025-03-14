@@ -2,6 +2,16 @@
  * Main application entry point
  */
 document.addEventListener('DOMContentLoaded', () => {
+  // Ensure only home screen is active at startup
+  document.querySelectorAll('.screen').forEach(screen => {
+    screen.classList.remove('active');
+  });
+  
+  const homeScreen = document.getElementById('home-screen');
+  if (homeScreen) {
+    homeScreen.classList.add('active');
+  }
+  
   // Initialize the game
   gameManager.init();
   

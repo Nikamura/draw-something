@@ -231,6 +231,8 @@ class GameManager {
     
     ui.updatePlayersList([{ id: this.playerId, name: this.playerName, isCreator: true }]);
     ui.showScreen('lobby');
+    // Verify only one screen is active
+    ui.checkActiveScreens();
     ui.showNotification('Room created successfully!');
   }
 
@@ -263,6 +265,8 @@ class GameManager {
     
     ui.updatePlayersList(this.players);
     ui.showScreen('lobby');
+    // Verify only one screen is active
+    ui.checkActiveScreens();
     ui.showNotification('Joined room successfully!');
   }
 
@@ -346,6 +350,8 @@ class GameManager {
     
     // Return to home screen
     ui.showScreen('home');
+    // Verify only one screen is active
+    ui.checkActiveScreens();
     
     // Clear canvas
     this.canvas.clear(false);
@@ -400,6 +406,8 @@ class GameManager {
     
     // Update UI
     ui.showScreen('game');
+    // Verify only one screen is active
+    ui.checkActiveScreens();
     ui.updateRoundInfo(this.currentRound, this.totalRounds);
     ui.updateScoreboard(data.players);
     ui.clearChat();
@@ -560,6 +568,8 @@ class GameManager {
     // Update UI
     ui.updateFinalScoreboard(data.players);
     ui.showScreen('results');
+    // Verify only one screen is active
+    ui.checkActiveScreens();
     ui.showNotification('Game over!');
   }
 
@@ -664,6 +674,8 @@ class GameManager {
     
     // Return to home screen
     ui.showScreen('home');
+    // Verify only one screen is active
+    ui.checkActiveScreens();
     
     // Clear canvas
     this.canvas.clear(false);
