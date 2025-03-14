@@ -77,6 +77,8 @@ class SocketManager {
       payload
     });
     
+    console.log(`Sending message to server: ${type}`, payload);
+    
     if (!this.connected) {
       console.warn('WebSocket not connected, queueing message:', type);
       this.messageQueue.push(message);
@@ -85,6 +87,7 @@ class SocketManager {
     
     try {
       this.socket.send(message);
+      console.log(`Message sent successfully: ${type}`);
       return true;
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -129,9 +132,10 @@ class SocketManager {
       const message = JSON.parse(event.data);
       const { type, payload } = message;
       
-      console.log('Received WebSocket message:', type, payload);
+      console.log(`Received WebSocket message: ${type}`, payload);
       
       if (this.messageHandlers[type]) {
+        console.log(`Found ${this.messageHandlers[type].length} handlers for message type: ${type}`);
         this.messageHandlers[type].forEach(handler => {
           try {
             handler(payload);
@@ -143,7 +147,7 @@ class SocketManager {
         console.warn(`No handler registered for message type: ${type}`);
       }
     } catch (error) {
-      console.error('Failed to parse WebSocket message:', error);
+      console.error('Failed to parse WebSocket message:', error, event.data);
     }
   }
 

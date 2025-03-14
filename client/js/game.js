@@ -421,10 +421,13 @@ class GameManager {
    * @param {Object} data - Turn data
    */
   _handleTurnStart(data) {
+    console.log('Turn start:', data);
     this.currentDrawer = data.drawerId;
     this.isDrawing = this.playerId === data.drawerId;
     this.hasGuessedCorrectly = false;
     this.gameState = 'turn-start';
+    
+    console.log(`Current drawer: ${this.currentDrawer}, This player: ${this.playerId}, Is drawing: ${this.isDrawing}`);
     
     // Clear canvas
     this.canvas.clear(false);
@@ -438,10 +441,12 @@ class GameManager {
     
     // Set up drawing or guessing UI
     if (this.isDrawing) {
+      console.log('This player is the drawer - enabling drawing tools');
       ui.setDrawingToolsEnabled(true);
       ui.setChatEnabled(false, "You're drawing! Others are guessing.");
       this.canvas.setEnabled(true);
     } else {
+      console.log('This player is a guesser - disabling drawing tools');
       ui.setDrawingToolsEnabled(false);
       ui.setChatEnabled(true);
       this.canvas.setEnabled(false);
@@ -511,7 +516,15 @@ class GameManager {
    * @param {Object} data - Drawing phase data
    */
   _handleDrawingPhase(data) {
+    console.log('Drawing phase started:', data);
     this.gameState = 'drawing';
+    
+    // Ensure drawing is enabled for the drawer
+    if (this.isDrawing) {
+      console.log('Ensuring drawing is enabled for the drawer');
+      this.canvas.setEnabled(true);
+      ui.setDrawingToolsEnabled(true);
+    }
     
     // Start timer
     ui.startTimer(data.drawTime, () => {
@@ -579,8 +592,14 @@ class GameManager {
    * @param {Object} data - Drawing data
    */
   _handleDrawData(data) {
-    if (this.isDrawing) return; // Ignore if we're the drawer
+    console.log('Received draw data from server:', data);
     
+    if (!data || !data.drawData) {
+      console.error('Invalid draw data received:', data);
+      return;
+    }
+    
+    console.log('Processing draw data:', data.drawData);
     this.canvas.processDrawData(data.drawData);
   }
 
@@ -589,8 +608,6 @@ class GameManager {
    * @private
    */
   _handleClearCanvas() {
-    if (this.isDrawing) return; // Ignore if we're the drawer
-    
     this.canvas.clear(false);
   }
 
@@ -687,7 +704,19 @@ class GameManager {
    * @param {Array} drawData - Drawing data
    */
   _onDrawEvent(drawData) {
-    if (!this.isDrawing) return;
+    console.log('Draw event from canvas:', drawData);
+    
+    if (!this.isDrawing) {
+      console.log('Not sending draw data because this client is not the drawer');
+      return;
+    }
+    
+    if (!this.roomId) {
+      console.error('Cannot send draw data: No room ID');
+      return;
+    }
+    
+    console.log('Sending draw data to server:', drawData);
     
     // Send drawing data to server
     socketManager.send(CONFIG.MESSAGE_TYPES.DRAW_DATA, {

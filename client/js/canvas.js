@@ -27,14 +27,33 @@ class Canvas {
    * @private
    */
   _initCanvas() {
-    // Set canvas size to match container
-    this._resizeCanvas();
+    // Set canvas to fixed size
+    this.canvas.width = CONFIG.CANVAS_WIDTH;
+    this.canvas.height = CONFIG.CANVAS_HEIGHT;
     
     // Set default styles
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
     this.ctx.strokeStyle = this.color;
     this.ctx.lineWidth = this.brushSize;
+    
+    console.log('Canvas initialized with fixed size:', {
+      width: this.canvas.width,
+      height: this.canvas.height
+    });
+    
+    // Draw a test line to ensure canvas is working
+    this.ctx.beginPath();
+    this.ctx.moveTo(10, 10);
+    this.ctx.lineTo(50, 50);
+    this.ctx.stroke();
+    this.ctx.closePath();
+    console.log('Drew test line on canvas');
+    
+    // Clear the test line
+    setTimeout(() => {
+      this.clear(false);
+    }, 500);
   }
 
   /**
@@ -53,20 +72,8 @@ class Canvas {
     this.canvas.addEventListener('touchmove', this._handleTouchMove.bind(this));
     this.canvas.addEventListener('touchend', this._handleTouchEnd.bind(this));
     
-    // Resize event
-    window.addEventListener('resize', this._resizeCanvas.bind(this));
-  }
-
-  /**
-   * Resize the canvas to match its container
-   * @private
-   */
-  _resizeCanvas() {
-    const container = this.canvas.parentElement;
-    this.canvas.width = container.clientWidth;
-    this.canvas.height = container.clientHeight;
-    
-    // Redraw any existing content if needed
+    // Remove resize event listener - we want fixed canvas size
+    // window.addEventListener('resize', this._resizeCanvas.bind(this));
   }
 
   /**
@@ -75,13 +82,22 @@ class Canvas {
    * @param {MouseEvent} e - The mouse event
    */
   _handleMouseDown(e) {
-    if (!this.isEnabled) return;
+    if (!this.isEnabled) {
+      console.log('Mouse down ignored - drawing not enabled');
+      return;
+    }
     
+    console.log('Mouse down - starting drawing');
     this.isDrawing = true;
     const pos = this._getMousePosition(e);
     
+    console.log('Starting path at', pos.x, pos.y);
     this.ctx.beginPath();
     this.ctx.moveTo(pos.x, pos.y);
+    
+    // Draw a small dot at the start point
+    this.ctx.arc(pos.x, pos.y, this.brushSize / 2, 0, Math.PI * 2);
+    this.ctx.fill();
     
     // Add to draw buffer
     this._addToDrawBuffer('start', pos.x, pos.y);
@@ -249,8 +265,24 @@ class Canvas {
    * @param {boolean} enabled - Whether drawing should be enabled
    */
   setEnabled(enabled) {
+    const wasEnabled = this.isEnabled;
     this.isEnabled = enabled;
     this.canvas.style.cursor = enabled ? 'crosshair' : 'default';
+    
+    console.log(`Canvas drawing ${enabled ? 'enabled' : 'disabled'} (was ${wasEnabled ? 'enabled' : 'disabled'})`);
+    
+    // Draw a small indicator in the corner to show if drawing is enabled
+    this.ctx.save();
+    this.ctx.fillStyle = enabled ? 'rgba(0, 255, 0, 0.3)' : 'rgba(255, 0, 0, 0.3)';
+    this.ctx.fillRect(5, 5, 10, 10);
+    this.ctx.restore();
+    
+    // Reset the indicator after a short delay
+    setTimeout(() => {
+      this.ctx.save();
+      this.ctx.clearRect(5, 5, 10, 10);
+      this.ctx.restore();
+    }, 1000);
   }
 
   /**
@@ -270,24 +302,39 @@ class Canvas {
    * @param {Array} drawData - Array of drawing actions
    */
   processDrawData(drawData) {
+    console.log('Processing draw data:', drawData);
+    
+    if (!drawData || !Array.isArray(drawData) || drawData.length === 0) {
+      console.error('Invalid draw data received:', drawData);
+      return;
+    }
+    
     drawData.forEach(action => {
+      console.log('Processing action:', action);
+      
       if (action.type === 'clear') {
+        console.log('Clearing canvas');
         this.clear(false);
         return;
       }
       
       // Set styles for this action
-      this.ctx.strokeStyle = action.color;
-      this.ctx.lineWidth = action.size;
+      this.ctx.strokeStyle = action.color || this.color;
+      this.ctx.lineWidth = action.size || this.brushSize;
       
       if (action.type === 'start') {
+        console.log('Starting path at', action.x, action.y);
         this.ctx.beginPath();
         this.ctx.moveTo(action.x, action.y);
       } else if (action.type === 'move') {
+        console.log('Drawing line to', action.x, action.y);
         this.ctx.lineTo(action.x, action.y);
         this.ctx.stroke();
       } else if (action.type === 'end') {
+        console.log('Ending path');
         this.ctx.closePath();
+      } else {
+        console.warn('Unknown action type:', action.type);
       }
     });
     

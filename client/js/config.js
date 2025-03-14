@@ -17,6 +17,8 @@ const CONFIG = {
   DEFAULT_COLOR: '#000000',
   DEFAULT_BRUSH_SIZE: 5,
   CANVAS_BATCH_INTERVAL: 100, // ms between sending batches of drawing data
+  CANVAS_WIDTH: 800, // Fixed canvas width
+  CANVAS_HEIGHT: 600, // Fixed canvas height
   
   // Word selection
   WORD_SELECTION_TIME: 15, // seconds
