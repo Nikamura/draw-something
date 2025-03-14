@@ -131,6 +131,7 @@ class GameManager {
     // Chat and guessing messages
     socketManager.on(CONFIG.MESSAGE_TYPES.CHAT_MESSAGE, this._handleIncomingChatMessage.bind(this));
     socketManager.on(CONFIG.MESSAGE_TYPES.CORRECT_GUESS, this._handleCorrectGuess.bind(this));
+    socketManager.on(CONFIG.MESSAGE_TYPES.CLOSE_GUESS, this._handleCloseGuess.bind(this));
     
     // Game settings
     socketManager.on(CONFIG.MESSAGE_TYPES.SETTINGS_UPDATED, this._handleSettingsUpdated.bind(this));
@@ -698,6 +699,20 @@ class GameManager {
       this.hasGuessedCorrectly = true;
       ui.setChatEnabled(false, "You've guessed correctly! Wait for the next round.");
     }
+  }
+
+  /**
+   * Handle close guess message from server
+   * @private
+   * @param {Object} data - Close guess data
+   */
+  _handleCloseGuess(data) {
+    // Show a notification to the player that they're close
+    ui.addChatMessage({
+      system: true,
+      text: data.message,
+      isCloseGuess: true
+    });
   }
 
   /**

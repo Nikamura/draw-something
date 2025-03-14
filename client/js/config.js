@@ -90,6 +90,7 @@ const CONFIG = {
     // Chat and guessing messages
     CHAT_MESSAGE: 'chat_message',
     CORRECT_GUESS: 'correct_guess',
+    CLOSE_GUESS: 'close_guess',
     
     // Game settings
     UPDATE_SETTINGS: 'update_settings',

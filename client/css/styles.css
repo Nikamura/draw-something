@@ -588,6 +588,11 @@ input:focus, select:focus {
   font-weight: bold;
 }
 
+.close-guess {
+  color: #ff9800; /* Orange color for close guesses */
+  font-weight: bold;
+}
+
 .chat-input-container {
   display: flex;
   min-height: 38px;

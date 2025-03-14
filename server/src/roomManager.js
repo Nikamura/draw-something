@@ -361,7 +361,7 @@ function handleClearCanvas(roomId) {
  * @param {string} roomId - Room ID
  * @param {string} playerId - Player ID
  * @param {string} message - Chat message
- * @returns {boolean} Whether the message was a correct guess
+ * @returns {Object} Result with isCorrectGuess and isCloseGuess flags
  */
 function handleChatMessage(roomId, playerId, message) {
   // Check if room exists
@@ -373,26 +373,43 @@ function handleChatMessage(roomId, playerId, message) {
   
   // Check if game is active
   if (!room.gameState.isActive) {
-    return false;
+    return { isCorrectGuess: false, isCloseGuess: false };
   }
   
   // Check if there's a current word
   if (!room.gameState.word) {
-    return false;
+    return { isCorrectGuess: false, isCloseGuess: false };
   }
   
   // Check if player is the drawer
   if (room.gameState.currentDrawer === playerId) {
-    return false;
+    return { isCorrectGuess: false, isCloseGuess: false };
   }
   
   // Check if player has already guessed correctly
   if (room.gameState.correctGuessers.includes(playerId)) {
-    return false;
+    return { isCorrectGuess: false, isCloseGuess: false };
   }
   
+  const normalizedMessage = message.toLowerCase().trim();
+  const normalizedWord = room.gameState.word.toLowerCase().trim();
+  
   // Check if message is a correct guess (case insensitive)
-  const isCorrectGuess = message.toLowerCase().trim() === room.gameState.word.toLowerCase().trim();
+  const isCorrectGuess = normalizedMessage === normalizedWord;
+  
+  // Check for close guesses
+  let isCloseGuess = false;
+  
+  if (!isCorrectGuess) {
+    // Check for singular/plural forms
+    if (normalizedMessage + 's' === normalizedWord || normalizedWord + 's' === normalizedMessage) {
+      isCloseGuess = true;
+    } 
+    // Check for simple typos using Levenshtein distance
+    else if (normalizedMessage.length > 3 && levenshteinDistance(normalizedMessage, normalizedWord) <= 2) {
+      isCloseGuess = true;
+    }
+  }
   
   if (isCorrectGuess) {
     // Add player to correct guessers
@@ -427,7 +444,42 @@ function handleChatMessage(roomId, playerId, message) {
     console.log(`Correct guess in room ${roomId} by player ${playerId}`);
   }
   
-  return isCorrectGuess;
+  return { isCorrectGuess, isCloseGuess };
+}
+
+/**
+ * Calculate Levenshtein distance between two strings
+ * @param {string} a - First string
+ * @param {string} b - Second string
+ * @returns {number} - The edit distance between the strings
+ */
+function levenshteinDistance(a, b) {
+  const matrix = [];
+
+  // Initialize matrix
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  // Fill matrix
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1,     // insertion
+          matrix[i - 1][j] + 1      // deletion
+        );
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
 }
 
 /**

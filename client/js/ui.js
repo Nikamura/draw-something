@@ -485,6 +485,12 @@ class UI {
     if (message.system) {
       // System message
       messageElement.classList.add('system-message');
+      
+      // Check if it's a close guess notification
+      if (message.isCloseGuess) {
+        messageElement.classList.add('close-guess');
+      }
+      
       messageElement.textContent = message.text;
     } else if (message.correct) {
       // Correct guess

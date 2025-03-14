@@ -58,6 +58,7 @@ const MESSAGE_TYPES = {
   // Chat and guessing messages
   CHAT_MESSAGE: 'chat_message',
   CORRECT_GUESS: 'correct_guess',
+  CLOSE_GUESS: 'close_guess',
   
   // Game settings
   UPDATE_SETTINGS: 'update_settings',
@@ -493,7 +494,7 @@ function handleChatMessageFromClient(ws, payload, wss) {
     }
     
     // Handle chat message and check if it's a correct guess
-    const isCorrectGuess = handleChatMessage(roomId, ws.playerId, message);
+    const { isCorrectGuess, isCloseGuess } = handleChatMessage(roomId, ws.playerId, message);
     
     if (isCorrectGuess) {
       // Get updated room state
@@ -522,6 +523,27 @@ function handleChatMessageFromClient(ws, payload, wss) {
           endTurn(wss, roomId);
         }, 2000);
       }
+    } else if (isCloseGuess) {
+      // Broadcast close guess message to the player who made the guess
+      const client = findClientById(wss, ws.playerId);
+      if (client) {
+        client.send(JSON.stringify({
+          type: MESSAGE_TYPES.CLOSE_GUESS,
+          payload: {
+            message: 'You\'re close!'
+          }
+        }));
+      }
+      
+      // Also broadcast the regular chat message to everyone
+      broadcastToRoom(wss, roomId, {
+        type: MESSAGE_TYPES.CHAT_MESSAGE,
+        payload: {
+          playerName: player.name,
+          playerId: player.id,
+          message
+        }
+      });
     } else {
       // Broadcast regular chat message
       broadcastToRoom(wss, roomId, {
