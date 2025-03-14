@@ -342,4 +342,12 @@ class Canvas {
     this.ctx.strokeStyle = this.color;
     this.ctx.lineWidth = this.brushSize;
   }
+
+  /**
+   * Get the current canvas as a data URL
+   * @returns {string} Canvas data URL
+   */
+  getCanvasImage() {
+    return this.canvas.toDataURL('image/png');
+  }
 } 

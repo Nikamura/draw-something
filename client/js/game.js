@@ -16,6 +16,7 @@ class GameManager {
     this.hasGuessedCorrectly = false;
     this.gameState = 'idle'; // idle, lobby, word-selection, drawing, round-end, game-end
     this.canvas = null;
+    this.previousDrawings = []; // Store previous drawings
     
     // Bind methods that will be used as callbacks
     this._onDrawEvent = this._onDrawEvent.bind(this);
@@ -404,6 +405,10 @@ class GameManager {
     this.currentRound = data.round;
     this.totalRounds = data.totalRounds;
     
+    // Clear previous drawings
+    this.previousDrawings = [];
+    ui.clearPreviousDrawings();
+    
     // Update UI
     ui.showScreen('game');
     // Verify only one screen is active
@@ -551,6 +556,25 @@ class GameManager {
    */
   _handleTurnEnd(data) {
     this.gameState = 'turn-end';
+    
+    // Capture the current drawing before disabling
+    if (this.canvas) {
+      const imageUrl = this.canvas.getCanvasImage();
+      
+      // Store the drawing data
+      const drawingData = {
+        imageUrl,
+        word: data.word,
+        drawerName: this.players.find(p => p.id === this.currentDrawer)?.name || 'Unknown',
+        round: this.currentRound
+      };
+      
+      // Add to previous drawings
+      this.previousDrawings.unshift(drawingData);
+      
+      // Display in UI
+      ui.addPreviousDrawing(drawingData);
+    }
     
     // Disable drawing
     this.canvas.setEnabled(false);

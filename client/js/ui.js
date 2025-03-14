@@ -63,6 +63,9 @@ class UI {
     // Timer related properties
     this.timerInterval = null;
     this.timerEndTime = 0;
+    
+    // Previous paintings
+    this.previousPaintingsContainer = document.getElementById('previous-paintings-container');
   }
 
   /**
@@ -541,6 +544,55 @@ class UI {
     
     console.log(`Currently active screens: ${activeScreens.length ? activeScreens.join(', ') : 'none'}`);
     return activeScreens;
+  }
+
+  /**
+   * Add a previous drawing to the display
+   * @param {Object} drawingData - Drawing data object
+   * @param {string} drawingData.imageUrl - Canvas image data URL
+   * @param {string} drawingData.word - The word that was drawn
+   * @param {string} drawingData.drawerName - Name of the player who drew
+   * @param {number} drawingData.round - Round number
+   */
+  addPreviousDrawing(drawingData) {
+    // Remove empty message if present
+    const emptyMessage = this.previousPaintingsContainer.querySelector('.empty-message');
+    if (emptyMessage) {
+      emptyMessage.remove();
+    }
+    
+    // Create painting item
+    const paintingItem = document.createElement('div');
+    paintingItem.className = 'painting-item';
+    
+    // Create image
+    const img = document.createElement('img');
+    img.src = drawingData.imageUrl;
+    img.alt = `Drawing of ${drawingData.word}`;
+    img.style.width = '100%';
+    img.style.height = 'auto';
+    
+    // Create info section
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'painting-info';
+    infoDiv.innerHTML = `
+      <span>Word: ${drawingData.word}</span>
+      <span>Round ${drawingData.round}</span>
+    `;
+    
+    // Add elements to painting item
+    paintingItem.appendChild(img);
+    paintingItem.appendChild(infoDiv);
+    
+    // Add to container (at the beginning)
+    this.previousPaintingsContainer.insertBefore(paintingItem, this.previousPaintingsContainer.firstChild);
+  }
+  
+  /**
+   * Clear all previous drawings
+   */
+  clearPreviousDrawings() {
+    this.previousPaintingsContainer.innerHTML = '<div class="empty-message">Previous drawings will appear here</div>';
   }
 }
 
