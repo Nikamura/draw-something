@@ -1,0 +1,112 @@
+---
+description: Describes the project we are trying to build
+globs: 
+alwaysApply: true
+---
+# Cursor Rules File for Drawing and Guessing Game
+
+## Project Structure
+```
+/
+├── server/         # Server-side code
+├── client/         # Client-side code
+```
+
+## Code Style Rules
+
+### General
+- Use camelCase for variable and function names
+- Use PascalCase for class names
+- Use descriptive variable names
+- Maximum line length: 100 characters
+- Indent using 2 spaces
+- Use semicolons at the end of statements
+
+### JavaScript (Client & Server)
+- Prefer `const` over `let` when variables aren't reassigned
+- Use template literals for string concatenation
+- Use arrow functions for callbacks
+- Use async/await for asynchronous operations
+- Use destructuring where appropriate
+- Add JSDoc comments for functions
+
+### Client-specific
+- Organize code into modules with clear responsibilities
+- Keep DOM manipulation code separate from game logic
+- Use event delegation for dynamic elements
+- Prefix private variables/functions with underscore (_)
+- Use data attributes for DOM elements related to game state
+
+### Server-specific
+- Use meaningful HTTP status codes
+- Validate all user input
+- Handle errors gracefully
+- Log important events
+- Use environment variables for configuration
+
+## Game Logic Rules
+
+### Room Management
+- Rooms have unique IDs
+- Maximum players per room: 8
+- Minimum players to start a game: 2
+- Room creator can configure game settings
+
+### Turn Management
+- Turns proceed in the order players joined
+- Each turn has phases: word selection, drawing, guessing
+- Time limits: 
+  - Word selection: 15 seconds
+  - Drawing: 60/90/120 seconds (Easy/Medium/Hard)
+  - Between turns: 5 seconds
+
+### Scoring System
+- First correct guess: 100 points
+- Subsequent correct guesses: 50 points
+- Drawer gets 25 points per correct guess
+- Bonus points for difficult words
+  - Easy: no bonus
+  - Medium: 25% bonus
+  - Hard: 50% bonus
+
+### Word Selection
+- Drawer chooses from 3 options (Easy, Medium, Hard)
+- Words should not repeat in the same game session
+- If drawer doesn't select in time, a random Easy word is chosen
+
+### Guessing Rules
+- Guesses are not case sensitive
+- Close matches (e.g., plural forms) may be accepted
+- Typing the exact word is required for a match
+- Players cannot guess during their drawing turn
+
+## Technical Implementation Notes
+
+### Communication Protocol
+- Use WebSockets for real-time communication
+- JSON format for all messages
+- Include message type and payload in all communications
+
+### Drawing Implementation
+- Canvas-based drawing system
+- Send drawing data as incremental updates
+- Support different brush sizes and colors
+- Optimize network traffic by batching drawing events
+
+### Security Considerations
+- Sanitize all user input
+- Rate limit API requests
+- Implement anti-cheat measures
+- Moderate chat content
+
+### Performance Optimization
+- Minimize DOM updates
+- Use requestAnimationFrame for animations
+- Implement debouncing for frequent events
+- Optimize WebSocket message size
+
+## Development Workflow
+- Run tests before committing
+- Use feature branches
+- Document API changes
+- Keep the README updated
