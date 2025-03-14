@@ -317,7 +317,7 @@ function handleWordSelected(ws, payload, wss) {
         });
         
         // Set timer to end the turn
-        setTimeout(() => {
+        room.gameState.turnTimer = setTimeout(() => {
           endTurn(wss, roomId);
         }, room.settings.drawTime * 1000);
       }
@@ -476,7 +476,7 @@ function handleChatMessageReceived(ws, payload, wss) {
       if (allPlayersGuessedCorrectly) {
         // End the turn early if all players have guessed correctly
         clearTimeout(updatedRoom.gameState.turnTimer);
-        setTimeout(() => {
+        updatedRoom.gameState.turnTimer = setTimeout(() => {
           endTurn(wss, roomId);
         }, 2000);
       }
@@ -700,7 +700,7 @@ function endTurn(wss, roomId) {
     }
     
     // Start the next turn after a delay
-    setTimeout(() => {
+    room.gameState.turnTimer = setTimeout(() => {
       startNextTurn(wss, roomId);
     }, 5000); // 5 seconds between turns
   } catch (error) {
