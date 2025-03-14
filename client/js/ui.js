@@ -88,15 +88,6 @@ class UI {
       homeScreen.classList.add('active');
     }
     
-    // Test button for debugging
-    const testLobbyBtn = document.getElementById('test-lobby-btn');
-    if (testLobbyBtn) {
-      testLobbyBtn.addEventListener('click', () => {
-        console.log('Test button clicked, showing lobby screen');
-        this.showScreen('lobby');
-      });
-    }
-    
     // Copy room code button
     this.copyCodeBtn.addEventListener('click', () => {
       const roomCode = this.shareCodeDisplay.textContent;
