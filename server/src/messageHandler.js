@@ -53,6 +53,7 @@ const MESSAGE_TYPES = {
   // Drawing messages
   DRAW_DATA: 'draw_data',
   CLEAR_CANVAS: 'clear_canvas',
+  UNDO_CANVAS: 'undo_canvas',
   
   // Chat and guessing messages
   CHAT_MESSAGE: 'chat_message',
@@ -102,8 +103,12 @@ function handleMessage(ws, message, wss) {
       handleClearCanvasMessage(ws, payload, wss);
       break;
       
+    case MESSAGE_TYPES.UNDO_CANVAS:
+      handleUndoCanvasMessage(ws, payload, wss);
+      break;
+      
     case MESSAGE_TYPES.CHAT_MESSAGE:
-      handleChatMessageReceived(ws, payload, wss);
+      handleChatMessageFromClient(ws, payload, wss);
       break;
       
     case MESSAGE_TYPES.UPDATE_SETTINGS:
@@ -405,12 +410,49 @@ function handleClearCanvasMessage(ws, payload, wss) {
 }
 
 /**
+ * Handle undo canvas message
+ * @param {WebSocket} ws - WebSocket client
+ * @param {Object} payload - Message payload
+ * @param {WebSocket.Server} wss - WebSocket server
+ */
+function handleUndoCanvasMessage(ws, payload, wss) {
+  const { roomId, drawData } = payload;
+  
+  if (!roomId) {
+    return errorHandler(ws, 'Room ID is required');
+  }
+  
+  try {
+    const room = getRoomById(roomId);
+    
+    if (!room) {
+      return errorHandler(ws, 'Room not found');
+    }
+    
+    // Only the current drawer can undo
+    if (room.gameState.currentDrawer !== ws.playerId) {
+      return errorHandler(ws, 'Only the current drawer can undo');
+    }
+    
+    // Broadcast undo to other players
+    broadcastToRoom(wss, roomId, {
+      type: MESSAGE_TYPES.UNDO_CANVAS,
+      payload: {
+        drawData
+      }
+    }, [ws.id]);
+  } catch (error) {
+    errorHandler(ws, error.message);
+  }
+}
+
+/**
  * Handle chat message
  * @param {WebSocket} ws - WebSocket client
  * @param {Object} payload - Message payload
  * @param {WebSocket.Server} wss - WebSocket server
  */
-function handleChatMessageReceived(ws, payload, wss) {
+function handleChatMessageFromClient(ws, payload, wss) {
   const { roomId, message } = payload;
   
   if (!roomId || !message) {

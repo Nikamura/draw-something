@@ -19,6 +19,10 @@ class Canvas {
     this.bufferTimeout = null;
     this.activeTool = 'brush'; // 'brush' or 'fill'
     
+    // Add history stack for undo functionality
+    this.history = [];
+    this.currentHistoryStep = null;
+    
     this._initCanvas();
     this._setupEventListeners();
   }
@@ -97,13 +101,29 @@ class Canvas {
       // Check if we're clicking on a line
       if (this._isClickOnLine(pos.x, pos.y)) {
         console.log('Clicked on a line, changing line color');
+        
+        // Save current canvas state before fill operation
+        this.currentHistoryStep = this.canvas.toDataURL('image/png');
+        
         this._changeLineColor(pos.x, pos.y);
       } else {
         // Regular flood fill
+        
+        // Save current canvas state before fill operation
+        this.currentHistoryStep = this.canvas.toDataURL('image/png');
+        
         this._floodFill(pos.x, pos.y);
       }
+      
+      // Save fill operation to history
+      this.history.push(this.currentHistoryStep);
+      this.currentHistoryStep = null;
+      
       return;
     }
+    
+    // Save current canvas state before starting new drawing
+    this.currentHistoryStep = this.canvas.toDataURL('image/png');
     
     this.isDrawing = true;
     console.log('Starting path at', pos.x, pos.y);
@@ -151,6 +171,12 @@ class Canvas {
     
     // Force send any remaining buffer
     this._sendDrawBuffer(true);
+    
+    // Save current canvas state to history
+    if (this.currentHistoryStep) {
+      this.history.push(this.currentHistoryStep);
+      this.currentHistoryStep = null;
+    }
   }
 
   /**
@@ -305,6 +331,11 @@ class Canvas {
    * @param {boolean} [notify=true] - Whether to notify via callback
    */
   clear(notify = true) {
+    // Save current canvas state before clearing
+    if (this.isEnabled) {
+      this.history.push(this.canvas.toDataURL('image/png'));
+    }
+    
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
     if (notify && this.onDraw) {
@@ -330,6 +361,21 @@ class Canvas {
       if (action.type === 'clear') {
         console.log('Clearing canvas');
         this.clear(false);
+        return;
+      }
+      
+      if (action.type === 'undo') {
+        console.log('Undoing last operation from remote user');
+        // For remote users, we don't have their history stack
+        // So we just redraw the entire canvas with the image they send
+        if (action.imageData) {
+          const img = new Image();
+          img.onload = () => {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.drawImage(img, 0, 0);
+          };
+          img.src = action.imageData;
+        }
         return;
       }
       
@@ -657,5 +703,37 @@ class Canvas {
     
     // Add to draw buffer
     this._addToDrawBuffer('lineColor', x, y);
+  }
+
+  /**
+   * Undo the last drawing operation
+   */
+  undo() {
+    if (!this.isEnabled || this.history.length === 0) {
+      console.log('Cannot undo: No history or drawing not enabled');
+      return;
+    }
+    
+    console.log('Undoing last operation');
+    
+    // Get the last state from history
+    const lastState = this.history.pop();
+    
+    // Create an image from the last state
+    const img = new Image();
+    img.onload = () => {
+      // Clear canvas and draw the previous state
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.drawImage(img, 0, 0);
+      
+      // Notify about the undo operation
+      if (this.onDraw) {
+        this.onDraw([{ 
+          type: 'undo',
+          imageData: lastState // Send the image data to other users
+        }]);
+      }
+    };
+    img.src = lastState;
   }
 } 

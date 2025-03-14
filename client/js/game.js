@@ -68,6 +68,12 @@ class GameManager {
       }
     });
     
+    ui.undoCanvasBtn.addEventListener('click', () => {
+      if (this.isDrawing) {
+        this.canvas.undo();
+      }
+    });
+    
     ui.chatInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         this._handleChatMessage();

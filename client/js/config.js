@@ -73,6 +73,7 @@ const CONFIG = {
     // Drawing messages
     DRAW_DATA: 'draw_data',
     CLEAR_CANVAS: 'clear_canvas',
+    UNDO_CANVAS: 'undo_canvas',
     
     // Chat and guessing messages
     CHAT_MESSAGE: 'chat_message',

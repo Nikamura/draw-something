@@ -46,6 +46,7 @@ class UI {
     this.colorOptions = document.querySelectorAll('.color-option');
     this.brushOptions = document.querySelectorAll('.brush-option');
     this.clearCanvasBtn = document.getElementById('clear-canvas');
+    this.undoCanvasBtn = document.getElementById('undo-canvas');
     this.fillToolBtn = document.getElementById('fill-tool');
     this.scoreboardList = document.getElementById('scoreboard-list');
     this.chatMessages = document.getElementById('chat-messages');
@@ -521,6 +522,7 @@ class UI {
     });
     
     this.clearCanvasBtn.disabled = !enabled;
+    this.undoCanvasBtn.disabled = !enabled;
     this.fillToolBtn.disabled = !enabled;
     this.fillToolBtn.style.opacity = enabled ? '1' : '0.5';
   }
