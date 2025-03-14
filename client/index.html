@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Draw Something - Drawing and Guessing Game</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Home Screen -->
+    <div id="home-screen" class="screen active">
+      <div class="logo">
+        <h1>Draw Something</h1>
+      </div>
+      <div class="menu">
+        <div class="form-group">
+          <input type="text" id="player-name" placeholder="Your nickname" maxlength="15">
+        </div>
+        <button id="create-room-btn" class="btn btn-primary">Create Room</button>
+        <div class="form-group">
+          <input type="text" id="room-code" placeholder="Room code" maxlength="6">
+          <button id="join-room-btn" class="btn btn-secondary">Join Room</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Room Lobby Screen -->
+    <div id="lobby-screen" class="screen">
+      <div class="room-info">
+        <h2>Room: <span id="room-id"></span></h2>
+        <div class="copy-code">
+          <span>Share this code with friends:</span>
+          <div class="code-container">
+            <span id="share-code"></span>
+            <button id="copy-code-btn" class="btn btn-icon"><i class="fas fa-copy"></i></button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="players-container">
+        <h3>Players</h3>
+        <ul id="players-list"></ul>
+      </div>
+      
+      <div class="game-settings">
+        <h3>Game Settings</h3>
+        <div class="setting">
+          <label for="rounds-select">Rounds:</label>
+          <select id="rounds-select">
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label for="draw-time-select">Drawing Time:</label>
+          <select id="draw-time-select">
+            <option value="60">60 seconds</option>
+            <option value="90" selected>90 seconds</option>
+            <option value="120">120 seconds</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="lobby-actions">
+        <button id="start-game-btn" class="btn btn-primary" disabled>Start Game</button>
+        <button id="leave-room-btn" class="btn btn-danger">Leave Room</button>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+      <div class="game-header">
+        <div class="round-info">
+          <span>Round <span id="current-round">1</span>/<span id="total-rounds">3</span></span>
+        </div>
+        <div class="timer-container">
+          <div id="timer-progress" class="timer-progress"></div>
+          <span id="timer">60</span>
+        </div>
+        <div class="current-word">
+          <span id="word-display">_ _ _ _ _</span>
+        </div>
+      </div>
+      
+      <div class="game-main">
+        <div class="canvas-container">
+          <canvas id="drawing-canvas"></canvas>
+          <div id="word-selection" class="word-selection hidden">
+            <h3>Choose a word to draw:</h3>
+            <div class="word-options">
+              <button class="word-option" data-difficulty="easy"></button>
+              <button class="word-option" data-difficulty="medium"></button>
+              <button class="word-option" data-difficulty="hard"></button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="game-sidebar">
+          <div class="drawing-tools">
+            <div class="color-picker">
+              <div class="color-option selected" data-color="#000000" style="background-color: #000000;"></div>
+              <div class="color-option" data-color="#ff0000" style="background-color: #ff0000;"></div>
+              <div class="color-option" data-color="#0000ff" style="background-color: #0000ff;"></div>
+              <div class="color-option" data-color="#008000" style="background-color: #008000;"></div>
+              <div class="color-option" data-color="#ffff00" style="background-color: #ffff00;"></div>
+              <div class="color-option" data-color="#ffa500" style="background-color: #ffa500;"></div>
+            </div>
+            <div class="brush-size">
+              <button class="brush-option" data-size="2">S</button>
+              <button class="brush-option selected" data-size="5">M</button>
+              <button class="brush-option" data-size="10">L</button>
+            </div>
+            <button id="clear-canvas" class="btn btn-tool">Clear</button>
+          </div>
+          
+          <div class="players-scoreboard">
+            <h3>Scoreboard</h3>
+            <ul id="scoreboard-list"></ul>
+          </div>
+          
+          <div class="chat-container">
+            <div id="chat-messages" class="chat-messages"></div>
+            <div class="chat-input-container">
+              <input type="text" id="chat-input" placeholder="Type your guess here...">
+              <button id="send-chat-btn" class="btn btn-icon"><i class="fas fa-paper-plane"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results-screen" class="screen">
+      <h2>Game Over!</h2>
+      <div class="final-scores">
+        <h3>Final Scores</h3>
+        <ul id="final-scoreboard"></ul>
+      </div>
+      <div class="result-actions">
+        <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+        <button id="back-to-home-btn" class="btn btn-secondary">Back to Home</button>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div id="notification" class="notification"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/socket.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/canvas.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html> 
