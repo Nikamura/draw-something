@@ -3,9 +3,21 @@
  */
 const CONFIG = {
   // Server connection
-  SERVER_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-    ? 'ws://localhost:3000' 
-    : `wss://${window.location.host}`,
+  SERVER_URL: (() => {
+    // Check if we're on localhost
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    // Determine protocol based on page protocol
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    
+    // For localhost, use the specific port
+    if (isLocalhost) {
+      return `ws://localhost:3000`;
+    }
+    
+    // For production, use the appropriate protocol with the current host
+    return `${protocol}//${window.location.host}`;
+  })(),
   
   // Game settings
   MAX_PLAYERS: 8,
