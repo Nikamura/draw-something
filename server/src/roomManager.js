@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { loadWordList } = require('./wordManager');
+const { loadWordList, resetUsedWords } = require('./wordManager');
 
 // In-memory storage for rooms
 const rooms = new Map();
@@ -261,6 +261,9 @@ function startGame(roomId) {
     player.score = 0;
     player.isDrawing = false;
   });
+  
+  // Reset used words for the new game
+  resetUsedWords();
   
   // Initialize game state
   room.gameState = {

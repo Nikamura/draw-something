@@ -320,8 +320,10 @@ class UI {
     
     // Start word selection timer
     this.startTimer(CONFIG.WORD_SELECTION_TIME, () => {
-      // Auto-select first word if time runs out
-      onSelect(words[0], 'easy');
+      // Randomly select a word if time runs out
+      const randomIndex = Math.floor(Math.random() * words.length);
+      const difficulty = this.wordOptions[randomIndex].getAttribute('data-difficulty');
+      onSelect(words[randomIndex], difficulty);
       this.wordSelection.classList.add('hidden');
     });
   }

@@ -13,6 +13,7 @@ const {
   handleChatMessage,
   resetGame
 } = require('./roomManager');
+const { getRandomWords } = require('./wordManager');
 
 // Fallback sendError function in case the import fails
 const localSendError = (ws, message) => {
@@ -628,7 +629,7 @@ function startNextTurn(wss, roomId) {
     });
     
     // Generate word options for the drawer
-    const wordOptions = generateWordOptions();
+    const wordOptions = getRandomWords();
     
     // Send word selection message to drawer
     const drawerClient = findClientById(wss, nextDrawer.id);
@@ -643,12 +644,15 @@ function startNextTurn(wss, roomId) {
       
       // Set a timer for word selection
       room.gameState.wordSelectionTimer = setTimeout(() => {
-        // Auto-select the first word if the drawer doesn't select one
+        // Auto-select a random word if the drawer doesn't select one
         if (!room.gameState.word) {
+          const randomIndex = Math.floor(Math.random() * wordOptions.length);
+          const randomDifficulty = ['easy', 'medium', 'hard'][randomIndex];
+          
           handleWordSelected(drawerClient, {
             roomId,
-            word: wordOptions[0],
-            difficulty: 'easy'
+            word: wordOptions[randomIndex],
+            difficulty: randomDifficulty
           }, wss);
         }
       }, 15000); // 15 seconds for word selection
@@ -709,17 +713,7 @@ function endTurn(wss, roomId) {
  * @returns {Array} Array of word options
  */
 function generateWordOptions() {
-  // In a real implementation, these would come from a database or file
-  const easyWords = ['dog', 'cat', 'house', 'tree', 'car', 'sun', 'moon', 'fish', 'book', 'chair'];
-  const mediumWords = ['airplane', 'elephant', 'computer', 'bicycle', 'mountain', 'rainbow', 'guitar', 'pizza', 'castle', 'robot'];
-  const hardWords = ['skyscraper', 'astronaut', 'submarine', 'volcano', 'orchestra', 'dinosaur', 'lighthouse', 'waterfall', 'helicopter', 'kangaroo'];
-  
-  // Select one word from each difficulty
-  const easy = easyWords[Math.floor(Math.random() * easyWords.length)];
-  const medium = mediumWords[Math.floor(Math.random() * mediumWords.length)];
-  const hard = hardWords[Math.floor(Math.random() * hardWords.length)];
-  
-  return [easy, medium, hard];
+  return getRandomWords();
 }
 
 /**

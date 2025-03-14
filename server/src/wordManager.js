@@ -6,24 +6,8 @@ let easyWords = [];
 let mediumWords = [];
 let hardWords = [];
 
-// Default word lists if files are not available
-const DEFAULT_EASY_WORDS = [
-  'dog', 'cat', 'house', 'tree', 'car', 'sun', 'moon', 'fish', 'book', 'chair',
-  'ball', 'apple', 'bird', 'baby', 'hat', 'door', 'shoe', 'eye', 'egg', 'boat',
-  'clock', 'star', 'cup', 'key', 'hand', 'foot', 'bed', 'nose', 'mouth', 'ear'
-];
-
-const DEFAULT_MEDIUM_WORDS = [
-  'airplane', 'elephant', 'computer', 'bicycle', 'mountain', 'rainbow', 'guitar', 'pizza', 'castle', 'robot',
-  'butterfly', 'octopus', 'hamburger', 'penguin', 'dinosaur', 'telescope', 'cactus', 'tornado', 'dolphin', 'kangaroo',
-  'umbrella', 'volcano', 'scarecrow', 'lighthouse', 'waterfall', 'snowman', 'pirate', 'cowboy', 'mermaid', 'dragon'
-];
-
-const DEFAULT_HARD_WORDS = [
-  'skyscraper', 'astronaut', 'submarine', 'orchestra', 'helicopter', 'rhinoceros', 'escalator', 'microscope', 'parachute', 'trampoline',
-  'firefighter', 'vegetarian', 'electricity', 'refrigerator', 'celebration', 'imagination', 'thermometer', 'skateboard', 'binoculars', 'caterpillar',
-  'constellation', 'photographer', 'cheerleader', 'rollercoaster', 'kaleidoscope', 'surveillance', 'extraterrestrial', 'procrastination', 'independence', 'photosynthesis'
-];
+// Track used words to prevent repetition
+let usedWords = new Set();
 
 /**
  * Load word lists from files
@@ -36,34 +20,38 @@ function loadWordList() {
     const mediumWordsPath = path.join(__dirname, '../data/medium_words.txt');
     const hardWordsPath = path.join(__dirname, '../data/hard_words.txt');
     
-    if (fs.existsSync(easyWordsPath)) {
-      easyWords = fs.readFileSync(easyWordsPath, 'utf8').split('\n').filter(word => word.trim() !== '');
-    } else {
-      easyWords = [...DEFAULT_EASY_WORDS];
+    if (!fs.existsSync(easyWordsPath)) {
+      throw new Error(`Easy words file not found: ${easyWordsPath}`);
     }
     
-    if (fs.existsSync(mediumWordsPath)) {
-      mediumWords = fs.readFileSync(mediumWordsPath, 'utf8').split('\n').filter(word => word.trim() !== '');
-    } else {
-      mediumWords = [...DEFAULT_MEDIUM_WORDS];
+    if (!fs.existsSync(mediumWordsPath)) {
+      throw new Error(`Medium words file not found: ${mediumWordsPath}`);
     }
     
-    if (fs.existsSync(hardWordsPath)) {
-      hardWords = fs.readFileSync(hardWordsPath, 'utf8').split('\n').filter(word => word.trim() !== '');
-    } else {
-      hardWords = [...DEFAULT_HARD_WORDS];
+    if (!fs.existsSync(hardWordsPath)) {
+      throw new Error(`Hard words file not found: ${hardWordsPath}`);
+    }
+    
+    easyWords = fs.readFileSync(easyWordsPath, 'utf8').split('\n').filter(word => word.trim() !== '');
+    mediumWords = fs.readFileSync(mediumWordsPath, 'utf8').split('\n').filter(word => word.trim() !== '');
+    hardWords = fs.readFileSync(hardWordsPath, 'utf8').split('\n').filter(word => word.trim() !== '');
+    
+    if (easyWords.length === 0) {
+      throw new Error('Easy words file is empty');
+    }
+    
+    if (mediumWords.length === 0) {
+      throw new Error('Medium words file is empty');
+    }
+    
+    if (hardWords.length === 0) {
+      throw new Error('Hard words file is empty');
     }
     
     console.log(`Loaded word lists: ${easyWords.length} easy, ${mediumWords.length} medium, ${hardWords.length} hard`);
   } catch (error) {
     console.error('Error loading word lists:', error);
-    
-    // Use default word lists
-    easyWords = [...DEFAULT_EASY_WORDS];
-    mediumWords = [...DEFAULT_MEDIUM_WORDS];
-    hardWords = [...DEFAULT_HARD_WORDS];
-    
-    console.log('Using default word lists');
+    throw error; // Re-throw the error instead of using default words
   }
   
   return {
@@ -71,6 +59,31 @@ function loadWordList() {
     medium: mediumWords,
     hard: hardWords
   };
+}
+
+/**
+ * Get a random word from a list, avoiding previously used words
+ * @param {Array} wordList - List of words to choose from
+ * @returns {string} Random word
+ */
+function getRandomWordFromList(wordList) {
+  // Filter out used words
+  const availableWords = wordList.filter(word => !usedWords.has(word));
+  
+  // If all words have been used, reset the used words tracking
+  if (availableWords.length === 0) {
+    console.log('All words have been used, resetting used words tracking');
+    usedWords.clear();
+    return wordList[Math.floor(Math.random() * wordList.length)];
+  }
+  
+  // Get a random word from available words
+  const word = availableWords[Math.floor(Math.random() * availableWords.length)];
+  
+  // Add to used words
+  usedWords.add(word);
+  
+  return word;
 }
 
 /**
@@ -84,11 +97,19 @@ function getRandomWords() {
   }
   
   // Get random words
-  const easy = easyWords[Math.floor(Math.random() * easyWords.length)];
-  const medium = mediumWords[Math.floor(Math.random() * mediumWords.length)];
-  const hard = hardWords[Math.floor(Math.random() * hardWords.length)];
+  const easy = getRandomWordFromList(easyWords);
+  const medium = getRandomWordFromList(mediumWords);
+  const hard = getRandomWordFromList(hardWords);
   
   return [easy, medium, hard];
+}
+
+/**
+ * Reset used words tracking (useful when starting a new game)
+ */
+function resetUsedWords() {
+  usedWords.clear();
+  console.log('Reset used words tracking');
 }
 
 // Load word lists on startup
@@ -96,5 +117,6 @@ loadWordList();
 
 module.exports = {
   loadWordList,
-  getRandomWords
+  getRandomWords,
+  resetUsedWords
 }; 
