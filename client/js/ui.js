@@ -50,6 +50,7 @@ class UI {
     this.chatMessages = document.getElementById('chat-messages');
     this.chatInput = document.getElementById('chat-input');
     this.sendChatBtn = document.getElementById('send-chat-btn');
+    this.scrollToBottomBtn = document.getElementById('scroll-to-bottom');
     
     // Results screen elements
     this.finalScoreboard = document.getElementById('final-scoreboard');
@@ -122,6 +123,12 @@ class UI {
         }
       });
     });
+    
+    // Set up chat scroll event listener
+    this.chatMessages.addEventListener('scroll', () => this._handleChatScroll());
+    
+    // Set up scroll to bottom button
+    this.scrollToBottomBtn.addEventListener('click', () => this._scrollChatToBottom());
   }
 
   /**
@@ -396,6 +403,29 @@ class UI {
   }
 
   /**
+   * Handle chat scroll event
+   * @private
+   */
+  _handleChatScroll() {
+    const isNearBottom = this.chatMessages.scrollHeight - this.chatMessages.clientHeight <= this.chatMessages.scrollTop + 100;
+    
+    if (isNearBottom) {
+      this.scrollToBottomBtn.classList.remove('visible');
+    } else {
+      this.scrollToBottomBtn.classList.add('visible');
+    }
+  }
+  
+  /**
+   * Scroll chat to bottom
+   * @private
+   */
+  _scrollChatToBottom() {
+    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+    this.scrollToBottomBtn.classList.remove('visible');
+  }
+
+  /**
    * Add a chat message
    * @param {Object} message - Message data
    */
@@ -422,10 +452,18 @@ class UI {
       messageElement.appendChild(document.createTextNode(' ' + message.text));
     }
     
+    // Check if user is already at the bottom before adding the new message
+    const isAtBottom = this.chatMessages.scrollHeight - this.chatMessages.clientHeight <= this.chatMessages.scrollTop + 50;
+    
     this.chatMessages.appendChild(messageElement);
     
-    // Scroll to bottom
-    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+    // Only scroll to bottom if user was already at the bottom
+    if (isAtBottom) {
+      this._scrollChatToBottom();
+    } else {
+      // Show the scroll to bottom button if not at bottom
+      this.scrollToBottomBtn.classList.add('visible');
+    }
   }
 
   /**
@@ -433,6 +471,7 @@ class UI {
    */
   clearChat() {
     this.chatMessages.innerHTML = '';
+    this.scrollToBottomBtn.classList.remove('visible');
   }
 
   /**

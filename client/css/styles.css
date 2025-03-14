@@ -23,9 +23,12 @@ body {
   color: var(--dark-color);
   background-color: #f0f2f5;
   height: 100vh;
+  margin: 0;
+  padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden; /* Prevent body scrolling */
 }
 
 .app-container {
@@ -37,6 +40,8 @@ body {
   box-shadow: var(--box-shadow);
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Button Styles */
@@ -259,6 +264,8 @@ input:focus, select:focus {
   display: none;
   flex-direction: column;
   padding: 0;
+  overflow: hidden;
+  height: 100%;
 }
 
 #game-screen.active {
@@ -313,6 +320,8 @@ input:focus, select:focus {
   display: flex;
   flex: 1;
   height: calc(100% - 50px);
+  overflow: hidden;
+  min-height: 0;
 }
 
 .canvas-container {
@@ -324,6 +333,7 @@ input:focus, select:focus {
   justify-content: center;
   align-items: center;
   overflow: auto;
+  min-height: 0;
 }
 
 #drawing-canvas {
@@ -387,6 +397,8 @@ input:focus, select:focus {
   display: none;
   flex-direction: column;
   background-color: var(--light-color);
+  min-height: 0;
+  overflow: hidden;
 }
 
 #game-screen.active .game-sidebar {
@@ -475,6 +487,11 @@ input:focus, select:focus {
   flex-direction: column;
   flex: 1;
   padding: 15px;
+  height: 100%;
+  max-height: 100%;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .chat-messages {
@@ -484,6 +501,8 @@ input:focus, select:focus {
   background-color: white;
   border-radius: var(--border-radius);
   padding: 10px;
+  max-height: calc(100% - 50px);
+  min-height: 50px;
 }
 
 .chat-message {
@@ -508,6 +527,9 @@ input:focus, select:focus {
 
 .chat-input-container {
   display: flex;
+  min-height: 38px;
+  max-height: 38px; /* Fixed height for input container */
+  flex-shrink: 0;
 }
 
 #chat-input {
@@ -519,6 +541,26 @@ input:focus, select:focus {
 #send-chat-btn {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+}
+
+.scroll-bottom-btn {
+  position: absolute;
+  bottom: 65px;
+  right: 25px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.scroll-bottom-btn.visible {
+  display: flex;
 }
 
 /* Results Screen */
@@ -584,17 +626,24 @@ input:focus, select:focus {
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
+  .app-container {
+    height: 100vh; /* Use full viewport height on mobile */
+    max-width: 100%;
+    border-radius: 0;
+  }
+  
   .game-main {
     flex-direction: column;
   }
   
   .game-sidebar {
     width: 100%;
-    height: 300px;
+    height: 40%; /* Limit sidebar height on mobile */
+    min-height: 250px; /* Minimum height for sidebar */
   }
   
   .canvas-container {
-    height: calc(100% - 300px);
+    height: 60%; /* Allocate more space to canvas on mobile */
     overflow: auto;
   }
   
