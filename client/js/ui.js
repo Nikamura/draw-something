@@ -212,6 +212,33 @@ class UI {
       this.drawTimeSelect.value = roomData.settings.drawTime;
     }
     
+    // Enable/disable settings based on whether user is room creator
+    const isCreator = roomData.creatorId === gameManager.playerId;
+    this.roundsSelect.disabled = !isCreator;
+    this.drawTimeSelect.disabled = !isCreator;
+    
+    // Add visual indication that settings are disabled for non-creators
+    const settingsContainer = document.querySelector('.game-settings');
+    if (settingsContainer) {
+      if (!isCreator) {
+        settingsContainer.classList.add('disabled');
+        // Add a note that only the room creator can change settings if not already present
+        if (!settingsContainer.querySelector('.creator-only-note')) {
+          const noteElement = document.createElement('p');
+          noteElement.className = 'creator-only-note';
+          noteElement.textContent = 'Only the room creator can change settings';
+          settingsContainer.appendChild(noteElement);
+        }
+      } else {
+        settingsContainer.classList.remove('disabled');
+        // Remove the note if it exists
+        const noteElement = settingsContainer.querySelector('.creator-only-note');
+        if (noteElement) {
+          noteElement.remove();
+        }
+      }
+    }
+    
     // Enable start button if enough players and user is room creator
     if (roomData.players.length >= CONFIG.MIN_PLAYERS && roomData.creatorId === gameManager.playerId) {
       this.startGameBtn.disabled = false;
