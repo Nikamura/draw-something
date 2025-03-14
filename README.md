@@ -2,6 +2,10 @@
 
 A real-time multiplayer drawing and guessing game inspired by Pictionary. One player draws a word while others try to guess it.
 
+## Development Approach
+
+This project has been entirely "vibe coded" - all code, documentation, and assets have been generated using Cursor IDE with Claude 3.7 Sonnet AI assistance. This represents an experiment in AI-assisted development, where the entire codebase was created through collaborative prompting and iterative refinement with AI.
+
 ## Project Structure
 
 ```
