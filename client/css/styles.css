@@ -328,7 +328,6 @@ input:focus, select:focus {
   flex: 1;
   position: relative;
   background-color: white;
-  border-right: 1px solid #ddd;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -420,17 +419,27 @@ input:focus, select:focus {
 }
 
 .game-sidebar {
-  width: 300px;
+  width: 250px;
   height: 100%;
-  border-left: 1px solid #ddd;
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
   overflow-y: auto; /* Allow scrolling if content exceeds height */
 }
 
-#game-screen.active .game-sidebar {
+.left-sidebar {
+  border-right: 1px solid #ddd;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.right-sidebar {
+  border-left: 1px solid #ddd;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+#game-screen.active .left-sidebar,
+#game-screen.active .right-sidebar {
   transform: translateX(0);
   display: flex;
 }
@@ -706,16 +715,31 @@ input:focus, select:focus {
   
   .game-sidebar {
     width: 100%;
-    height: 40%; /* Limit sidebar height on mobile */
-    min-height: 250px; /* Minimum height for sidebar */
+    height: auto;
+  }
+  
+  .left-sidebar {
+    order: 2;
+    border-right: none;
+    border-top: 1px solid #ddd;
+    transform: translateY(0); /* Reset transform for mobile */
+    max-height: 250px;
+    overflow-y: auto;
+  }
+  
+  .right-sidebar {
+    order: 3;
     border-left: none;
     border-top: 1px solid #ddd;
     transform: translateY(0); /* Reset transform for mobile */
+    max-height: 250px;
   }
   
   .canvas-container {
+    order: 1;
     height: 60%; /* Allocate more space to canvas on mobile */
     overflow: auto;
+    min-height: 300px;
   }
   
   #drawing-canvas {
