@@ -119,6 +119,10 @@ class Canvas {
       this.history.push(this.currentHistoryStep);
       this.currentHistoryStep = null;
       
+      // Switch back to brush tool after fill operation
+      this.setActiveTool('brush');
+      document.getElementById('fill-tool').classList.remove('active');
+      
       return;
     }
     
